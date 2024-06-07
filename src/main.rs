@@ -9,6 +9,14 @@ fn tokenize(input: &str) -> Vec<&str> {
     input.split(' ').collect()
 }
 
+fn type_command(cmd: &str) {
+    if cmd == "exit" || cmd == "echo" || cmd == "type" {
+        println!("{} is a shell builtin", cmd);
+        return;
+    }
+    println!("{} not found", cmd)
+}
+
 fn main() {
     loop {
         print!("$ ");
@@ -25,6 +33,7 @@ fn main() {
         match token[..] {
             ["exit", code] => process::exit(code.parse::<i32>().unwrap()),
             ["echo", ..] => println!("{}", token[1..].join(" ")),
+            ["type", cmd] => type_command(cmd),
             _ => not_found(command),
         }
     }
