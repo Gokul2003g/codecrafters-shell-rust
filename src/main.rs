@@ -1,24 +1,31 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
+use std::process;
+fn not_found(command: &str) {
+    println!("{}: command not found", command);
+}
+
+fn tokenize(input: &str) -> Vec<&str> {
+    input.split(' ').collect()
+}
 
 fn main() {
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    //println!("Logs from your program will appear here!");
-
-    // Uncomment this block to pass the first stage
     loop {
         print!("$ ");
         io::stdout().flush().unwrap();
-
         // Wait for user input
         let stdin = io::stdin();
         let mut input = String::new();
+
         stdin.read_line(&mut input).unwrap();
 
-        match input.trim() {
-            "exit" => break,
-            "exit 0" => break,
-            _ => println!("{}: command not found", input.trim()),
+        let command = input.trim();
+        let token = tokenize(command);
+
+        match token[..] {
+            ["exit", code] => process::exit(code.parse::<i32>().unwrap()),
+            ["echo", ..] => println!("{}", token[1..].join(" ")),
+            _ => not_found(command),
         }
     }
 }
