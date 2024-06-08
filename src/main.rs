@@ -1,7 +1,6 @@
 use std::io::{self, Write};
 use std::process::{exit, Command};
 use std::{env, fs};
-#[allow(unused_imports)]
 
 fn main() {
     loop {
@@ -16,12 +15,12 @@ fn main() {
         let command = input.trim();
         let token = tokenize(command);
 
-        match token[..] {
-            ["exit", code] => exit(code.parse::<i32>().unwrap()),
+        match token.as_slice() {
+            ["exit", code] => exit(code.parse::<i32>().unwrap_or(0)),
             ["echo", ..] => println!("{}", token[1..].join(" ")),
             ["type", cmd] => type_command(cmd),
             [cmd, ..] => {
-                execute_command(cmd, token[1..].join(" ").as_str());
+                execute_command(cmd, &token[1..]);
             }
             [] => continue,
         }
@@ -33,7 +32,7 @@ fn not_found(command: &str) {
 }
 
 fn tokenize(input: &str) -> Vec<&str> {
-    input.split(' ').collect()
+    input.split_whitespace().collect()
 }
 
 fn type_command(cmd: &str) {
@@ -43,29 +42,33 @@ fn type_command(cmd: &str) {
     }
 
     let path_env = std::env::var("PATH").unwrap();
-    let split = &mut path_env.split(':');
+    let paths = path_env.split(':');
 
-    if let Some(path) = split.find(|path| std::fs::metadata(format!("{}/{}", path, cmd)).is_ok()) {
-        println!("{cmd} is {path}/{cmd}");
-    } else {
-        println!("{cmd} not found");
+    for path in paths {
+        if fs::metadata(format!("{}/{}", path, cmd)).is_ok() {
+            println!("{cmd} is {}/{}", path, cmd);
+            return;
+        }
     }
+    println!("{cmd} not found");
 }
 
 fn command_exist(cmd: &str) -> bool {
     let path_env = env::var("PATH").unwrap();
-    let split = &mut path_env.split(':');
+    let paths = path_env.split(':');
 
-    match split.find(|path| fs::metadata(format!("{}/{}", path, cmd)).is_ok()) {
-        Some(_path) => true,
-        None => false,
+    for path in paths {
+        if fs::metadata(format!("{}/{}", path, cmd)).is_ok() {
+            return true;
+        }
     }
+    false
 }
 
-fn execute_command(cmd: &str, args: &str) {
+fn execute_command(cmd: &str, args: &[&str]) {
     if command_exist(cmd) {
         let mut child = Command::new(cmd)
-            .arg(args)
+            .args(args)
             .spawn()
             .expect("Failed to execute command");
 
