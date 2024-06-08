@@ -14,7 +14,15 @@ fn type_command(cmd: &str) {
         println!("{} is a shell builtin", cmd);
         return;
     }
-    println!("{} not found", cmd)
+
+    let path_env = std::env::var("PATH").unwrap();
+    let split = &mut path_env.split(':');
+
+    if let Some(path) = split.find(|path| std::fs::metadata(format!("{}/{}", path, cmd)).is_ok()) {
+        println!("{cmd} is {path}/{cmd}");
+    } else {
+        println!("{cmd} not found");
+    }
 }
 
 fn main() {
