@@ -1,5 +1,5 @@
 use std::io::{self, Write};
-use std::process::{self, exit, Command};
+use std::process::{self, Command};
 use std::{env, fs};
 #[allow(unused_imports)]
 
@@ -36,16 +36,6 @@ fn tokenize(input: &str) -> Vec<&str> {
     input.split(' ').collect()
 }
 
-fn command_exist(cmd: &str) -> Result<String, bool> {
-    let path_env = env::var("PATH").unwrap();
-    let split = &mut path_env.split(':');
-
-    match split.find(|path| fs::metadata(format!("{}/{}", path, cmd)).is_ok()) {
-        Some(path) => Ok(path.to_string()),
-        None => Err(false),
-    }
-}
-
 fn type_command(cmd: &str) {
     if cmd == "exit" || cmd == "echo" || cmd == "type" {
         println!("{} is a shell builtin", cmd);
@@ -62,20 +52,25 @@ fn type_command(cmd: &str) {
     }
 }
 
+fn command_exist(cmd: &str) -> bool {
+    let path_env = env::var("PATH").unwrap();
+    let split = &mut path_env.split(':');
+
+    match split.find(|path| fs::metadata(format!("{}/{}", path, cmd)).is_ok()) {
+        Some(_path) => true,
+        None => false,
+    }
+}
+
 fn execute_command(cmd: &str, args: &str) {
-    match command_exist(cmd) {
-        Ok(path) => {
-            let mut child = Command::new(path)
-                .arg(args)
-                .spawn()
-                .expect("Failed to execute command");
+    if command_exist(cmd) {
+        let mut child = Command::new(cmd)
+            .arg(args)
+            .spawn()
+            .expect("Failed to execute command");
 
-            let status = child.wait().expect("Failed to wait on child");
-
-            if !status.success() {
-                exit(1);
-            }
-        }
-        Err(_) => not_found(cmd),
+        let _status = child.wait().expect("Failed to wait on child");
+    } else {
+        not_found(cmd);
     }
 }
