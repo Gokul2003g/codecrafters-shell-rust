@@ -1,5 +1,5 @@
 use std::io::{self, Write};
-use std::process::{self, Command};
+use std::process::{exit, Command};
 use std::{env, fs};
 #[allow(unused_imports)]
 
@@ -17,7 +17,7 @@ fn main() {
         let token = tokenize(command);
 
         match token[..] {
-            ["exit", code] => process::exit(code.parse::<i32>().unwrap()),
+            ["exit", code] => exit(code.parse::<i32>().unwrap()),
             ["echo", ..] => println!("{}", token[1..].join(" ")),
             ["type", cmd] => type_command(cmd),
             [cmd, ..] => {
