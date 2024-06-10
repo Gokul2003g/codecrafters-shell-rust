@@ -1,10 +1,12 @@
 use std::io::{self, Write};
 use std::process::exit;
 
-mod commands;
+mod helper_commands;
+mod shell_builtins;
 mod tokenize;
 
-use commands::{execute_path_commands, type_command};
+use helper_commands::{execute_path_commands, type_command};
+use shell_builtins::change_directory;
 use tokenize::tokenize;
 
 fn main() {
@@ -24,6 +26,7 @@ fn main() {
             ["exit", code] => exit(code.parse::<i32>().unwrap_or(0)),
             ["echo", ..] => println!("{}", token[1..].join(" ")),
             ["type", cmd] => type_command(cmd),
+            ["cd", arg] => change_directory(arg),
             [cmd, ..] => {
                 execute_path_commands(cmd, &token[1..]);
             }
