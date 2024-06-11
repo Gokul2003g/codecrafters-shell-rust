@@ -5,8 +5,8 @@ mod helper_commands;
 mod shell_builtins;
 mod tokenize;
 
-use helper_commands::{execute_path_commands, type_command};
-use shell_builtins::change_directory;
+use helper_commands::execute_path_commands;
+use shell_builtins::{change_directory, type_command};
 use tokenize::tokenize;
 
 fn main() {
